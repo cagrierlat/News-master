@@ -1,0 +1,85 @@
+﻿
+@{
+    ViewData["Title"] = "Statistics";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="content-body">
+    <div class="form-row">
+        <div class="form-group col-md-6">
+            <div class="card">
+                <div class="card-header ">
+                    <h4 class="card-title" id="horz-layout-colored-controls">1</h4>
+                    <a class="heading-elements-toggle"><i class="la la-ellipsis-v font-medium-3"></i></a>
+                    <div class="heading-elements">
+                        <ul class="list-inline mb-0">
+                            <li><a data-action="collapse"><i class="ft-minus"></i></a></li>
+                            <li><a data-action="expand"><i class="ft-maximize"></i></a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="card-content collpase show">
+                    <div class="card-body">
+                        <div id="form-container">
+                            @(Html.DevExtreme().PieChart()
+                                .ID("pie")
+                                .Size(s => s.Width(500))
+                                .Palette(VizPalette.Bright)
+                                .Series(s => s
+                                    .Add()
+                                    .ArgumentField("kategori")
+                                    .ValueField("okunmaSayisi")
+                                    .Label(l => l
+                                        .Visible(true)
+                                        .Connector(c => c
+                                            .Visible(true)
+                                            .Width(1)
+                                        )
+                                    )
+                                )
+                                .Title("Kategoriye Göre Okunma Sayısı")
+                                .Export(e => e.Enabled(true))
+                                .OnPointClick(@<text>
+                                    function (e) {
+                                        var point = e.target;
+                                        toggleVisibility(point);
+                                    }
+                                </text>)
+                                .OnLegendClick(@<text>
+                                    function (e) {
+                                        var arg = e.target;
+                                        toggleVisibility(this.getAllSeries()[0].getPointsByArg(arg)[0]);
+                                    }
+                                </text>)
+                                .DataSource(d => d.Mvc()
+                             .Controller("Home")
+                             .LoadAction("GetNews")
+                             .Key("id")
+                            )
+                            )
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="form-group col-md-6">
+
+
+        </div>
+    </div>
+</div>
+
+@section Scripts{
+    <script type="text/javascript">
+
+        function toggleVisibility(item) {
+            if (item.isVisible()) {
+                item.hide();
+            } else {
+                item.show();
+            }
+    }
+    </script>
+}
+
+

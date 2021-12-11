@@ -1,0 +1,335 @@
+﻿
+@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="content-body">
+    <div class="dx-viewport">
+        <div class="card">
+            <div class="card-header ">
+                <h4 class="card-title" id="horz-layout-colored-controls">Haber Listesi</h4>
+                <a class="heading-elements-toggle"><i class="la la-ellipsis-v font-medium-3"></i></a>
+                <div class="heading-elements">
+                    <ul class="list-inline mb-0">
+                        <li><a data-action="collapse"><i class="ft-minus"></i></a></li>
+                        <li><a data-action="expand"><i class="ft-maximize"></i></a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="card-content collpase show">
+                <div class="card-body">
+                    <div id="form-container">
+                        <div id="widgetForDataGrid"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts{
+    <script type="text/javascript">
+        var url_ = "@ViewData["APIURL"]";
+        /*DevExpress.localization.locale("tr");*/
+
+        var grid = null;
+
+        $(function () {
+            var gridData = new DevExpress.data.CustomStore({
+                key: "id",
+                load: function (loadOptions) {
+                    console.log($.getJSON(url_ + "News/GetNews/"));
+                    return $.getJSON(url_ + "News/GetNews/");
+                },
+
+                byKey: function (key) {
+                },
+
+            });
+
+            var contentReadyCount = 0;
+            grid = new DevExpress.ui.dxDataGrid(document.getElementById("widgetForDataGrid"), {
+                dataSource: gridData,
+                keyExpr: "id",
+                showBorders: true,
+                focusedRowEnabled: true,
+                rowAlternationEnabled: true,
+                allowColumnReordering: true,
+                allowColumnResizing: true,
+                wordWrapEnabled: true,
+                width: "100%",
+                /*dateSerializationFormat: "dd.MM.yyyy",*/
+                grouping: {
+                    autoExpandAll: false,
+                    contextMenuEnabled: true
+                },
+                onContentReady: function (component) {
+                    if (contentReadyCount < 1) {
+                        contentReadyCount++;
+                    }
+                },
+                onInitNewRow: function (e) {
+                },
+                columnChooser: {
+                    title: "Sütun Seçici",
+                    enabled: true,
+                    mode: "dragAndDrop" // or "select"Termi
+                },
+                pager: {
+                    allowedPageSizes: [1,5, 10, 'all'],
+                    showInfo: true,
+                    showNavigationButtons: true,
+                    showPageSizeSelector: true,
+                    visible: true
+                },
+                stateStoring: {
+                    enabled: true,
+                    type: "localStorage",
+                    storageKey: "storageNews"
+                },
+                export: {
+                    enabled: true,
+                    fileName: "News.xlsx",
+                    customizeExcelCell: function (options) {
+                        var gridCell = options.gridCell;
+                        if (!gridCell) {
+                            return;
+                        }
+
+                        if (gridCell.rowType === "data") {
+                            if (gridCell.column.dataField === "haberMetni") {
+                                options.value = stripHtml(gridCell.value);
+                            }
+                        }
+                    }
+                },
+                //export: {
+                //    enabled: true,
+                //    fileName: "News.xlsx",
+                //    customizeExcelCell: function (options) {
+                //        var gridCell = options.gridCell;
+                //        if (!gridCell) {
+                //            return;
+                //        }
+                //    }
+                //},
+                columnFixing: {
+                    enabled: true
+                },
+                filterRow: {
+                    visible: true,
+                    applyFilter: "auto"
+                },
+                searchPanel: {
+                    visible: true,
+                    /*width: 240,*/
+                    placeholder: "Arama..."
+                },
+                headerFilter: {
+                    visible: true
+                },
+                filterPanel: {
+                    visible: true,
+                    height: function () {
+                        return window.innerHeight / 5;
+                    }
+                },
+                filterBuilderPopup: {
+                    position: { of: window, at: "top", my: "top", offsusert: { y: 10 } },
+                    width: "50%"
+                },
+                onRowClick: function (e) {
+                    var component = e.component,
+                        prevClickTime = component.lastClickTime;
+                    component.lastClickTime = new Date();
+                    if (prevClickTime && (component.lastClickTime - prevClickTime < 300)) {
+                        //Double click code
+                    }
+                    else {
+                        /*console.log('single click');*/
+                    }
+                },
+                onFocusedRowChanged: function (e) {
+                    var selectedRowId = e.component.option("focusedRowKey");
+                },
+                //onCellPrepared: function onCellPrepared(e) {
+                //},
+                editing: {
+                    mode: "cell",
+                    allowUpdating: false,
+                    allowAdding: false,
+                    allowDeleting: false,
+                    useIcons: true,
+                },
+                columns: [
+                    {
+                        dataField: "id",
+                        caption: "Haber Id",
+                        visible: false,
+                        showInColumnChooser: false,
+                        width: 60
+                    },
+                    {
+                        dataField: "haberAciklama",
+                        caption: "Açıklama",
+                        width: 300
+                    },
+                    {
+                        dataField: "haberKategorisi",
+                        caption: "Kategori",
+                        width: 120
+                    },
+                    {
+                        dataField: "haberLink",
+                        caption: "Link",
+                        width: 150
+                    },
+                    {
+                        dataField: "haberManset",
+                        caption: "Manşet",
+                        width: 150
+                    },
+                    {
+                        dataField: "haberMetni",
+                        caption:"Metin",
+                        allowFiltering: false,
+                        editorType: "dxHtmlEditor",
+                        encodeHtml: false,
+                        minWidth: 650,
+                        editorOptions: {
+                            toolbar: {
+                                //items: [
+                                //    {
+                                //        name: "size",
+                                //        options: {
+                                //            placeholder: "Boyut"
+                                //        },
+                                //        acceptedValues: ["8pt", "10pt", "12pt", "14pt", "18pt", "24pt", "36pt"]
+                                //    },
+                                //    {
+                                //        name: "font",
+                                //        options: {
+                                //            placeholder: "Yazı Tipi"
+                                //        },
+                                //        acceptedValues: ["Arial", "Courier New", "Georgia", "Impact", "Lucida Console", "Tahoma", "Times New Roman", "Verdana"]
+                                //    },
+                                //    "separator", "bold", "italic", "strike", "underline", "separator",
+                                //    "alignLeft", "alignJustify", "separator",
+                                //    "orderedList", "separator",
+                                //    "clear", "separator", "color", "background"
+                                //]
+                            },
+                            height: function () {
+                                return 180;
+                            }
+                        }
+                    },
+                    {
+                        dataField: "haberResim",
+                        visible: true,
+                        width: 250,
+                        cellTemplate: function (component, data) {
+                        //var myImg = "data:image/jpeg;base64," + data.data.resim;
+                            var image = document.createElement("img");
+                            
+                            image.src = data.data.haberResim;
+                            image.classList.add("image");
+                            if (data.data.haberResim) {
+                            component.append($(image));
+                            }
+                        },
+                    },
+                    {
+                        dataField: "haberTarihi",
+                        caption: "Haber Tarihi",
+                        dataType: "date",
+                        width: 120
+                    },
+                    //{
+                    //    dataField: "haberVideo",
+                    //    caption: "Video",
+                    //    width: 120
+                    //},
+                    //{
+                    //    dataField: "izlesId",
+                    //    caption: "Izles Id",
+                    //    width: 120
+                    //},
+                    {
+                        dataField: "mansetResim",
+                        width: 250,
+                        cellTemplate: function (component, data) {
+                            //var myImg = "data:image/jpeg;base64," + data.data.resim;
+                            var image = document.createElement("img");
+
+                            image.src = data.data.mansetResim;
+                            image.classList.add("image");
+                            if (data.data.mansetResim) {
+                                component.append($(image));
+                            }
+                        },
+                    },
+                    {
+                        dataField: "okunmaadedi",
+                        caption: "Okunma Adedi",
+                        width: 120
+                    },
+                    {
+                        dataField: "yorumSay",
+                        caption: "Yorum Sayısı",
+                        width: 120
+                    },
+                ],
+                //toolbar işlemleri
+                onToolbarPreparing: function (e) {
+                    var toolbarItems = e.toolbarOptions.items;
+                    toolbarItems.unshift(
+                        {
+                            location: "after",
+                            widget: "dxButton",
+                            options: {
+                                icon: "refresh",
+                                hint: "Yenile",
+                               /* text:"Yenile",*/
+                                onClick: function () {
+                                    grid.refresh();
+                                }
+                            }
+                        }
+                    );
+                    $.each(toolbarItems, function (_, item) {
+                        if (item.name === "columnChooserButton") {
+                            item.location = "before";
+                            item.options.text = "Sütun Seçici";
+                            item.showText = 'always';
+                        }
+                    });
+                }
+            });
+
+        })
+
+        function success(message) {
+            DevExpress.ui.notify({ message: message, maxWidth: 1000 }, "success", 1000);
+        }
+
+        function error(message) {
+            DevExpress.ui.notify({ message: message, maxWidth: 1000 }, "error", 3000);
+        }
+
+        function stripHtml(html) {
+            let tmp = document.createElement("DIV");
+            tmp.innerHTML = html;
+            return tmp.textContent || tmp.innerText || "";
+        }
+    </script>
+}
+
+<style>
+    .image {
+        width: 70%;
+    }
+</style>
+       
+

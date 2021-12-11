@@ -1,0 +1,311 @@
+﻿
+@{
+    ViewData["Title"] = "Descriptions";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="content-body">
+    <div class="form-row">
+        <div class="form-group col-md-6">
+            <div class="card">
+                <div class="card-header ">
+                    <h4 class="card-title" id="horz-layout-colored-controls">Kategori Tanımları</h4>
+                    <a class="heading-elements-toggle"><i class="la la-ellipsis-v font-medium-3"></i></a>
+                    <div class="heading-elements">
+                        <ul class="list-inline mb-0">
+                            <li><a data-action="collapse"><i class="ft-minus"></i></a></li>
+                            <li><a data-action="expand"><i class="ft-maximize"></i></a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="card-content collpase show">
+                    <div class="card-body">
+                        <div id="form-container">
+                            <div id="widgetForCategoryDataGrid"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="form-group col-md-6">
+
+            <div class="card">
+                <div class="card-header ">
+                    <h4 class="card-title" id="horz-layout-colored-controls">Etiket Tanımları</h4>
+                    <a class="heading-elements-toggle"><i class="la la-ellipsis-v font-medium-3"></i></a>
+                    <div class="heading-elements">
+                        <ul class="list-inline mb-0">
+                            <li><a data-action="collapse"><i class="ft-minus"></i></a></li>
+                            <li><a data-action="expand"><i class="ft-maximize"></i></a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="card-content collpase show">
+                    <div class="card-body">
+                        <div id="form-container">
+                            <div id="widgetForTagDataGrid"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@section Scripts{
+    <script type="text/javascript">
+        var url_ = "@ViewData["APIURL"]";
+        /*DevExpress.localization.locale("tr");*/
+
+        var gridCategory = null;
+        var gridTag = null;
+
+        $(function () {
+            var gridData = new DevExpress.data.CustomStore({
+                key: "id",
+                load: function (loadOptions) {
+                    return $.getJSON(url_ + "News/GetCategoryList/");
+                },
+
+                byKey: function (key) {
+                },
+
+                insert: function (values) {
+                    sendToController({ values: values }, "POST", url_ + "News/AddCategory", "Kategori ekleme işleminde hata oluştu!", "Kategori ekleme işlemi başarılı!", "Category");
+                },
+
+                update: function (key, values) {
+                    values.id = key;
+                    sendToController({ values: values }, "PUT", url_ + "News/UpdateCategory", "Kategori düzenleme işleminde hata oluştu!", "Kategori düzenleme işlemi başarılı", "Category");
+                },
+
+                remove: function (key) {
+                    sendToController({ key: key }, "DELETE", url_ + "News/DeleteCategory/" + key, "Kategori silme işleminde hata oluştu!", "Kategori silme işlemi başarılı", "Category");
+                }
+
+            });
+
+            gridCategory = new DevExpress.ui.dxDataGrid(document.getElementById("widgetForCategoryDataGrid"), {
+                dataSource: gridData,
+                keyExpr: "id",
+                showBorders: true,
+                focusedRowEnabled: true,
+                rowAlternationEnabled: true,
+                allowColumnReordering: true,
+                allowColumnResizing: true,
+                wordWrapEnabled: true,
+                width: "100%",
+                grouping: {
+                    autoExpandAll: false,
+                    contextMenuEnabled: true
+                },
+                pager: {
+                    allowedPageSizes: [5, 10, 'all'],
+                    showInfo: true,
+                    showNavigationButtons: true,
+                    showPageSizeSelector: true,
+                    visible: true
+                },
+                stateStoring: {
+                    enabled: true,
+                    type: "localStorage",
+                    storageKey: "storageCategory"
+                },
+                columnFixing: {
+                    enabled: true
+                },
+                filterRow: {
+                    visible: true,
+                    applyFilter: "auto"
+                },
+                editing: {
+                    mode: "cell",
+                    allowUpdating: true,
+                    allowAdding: true,
+                    allowDeleting: true,
+                    useIcons: true,
+                },
+                columns: [
+                    {
+                        dataField: "id",
+                        visible: false,
+                        showInColumnChooser: false,
+                        width: 60
+                    },
+                    {
+                        dataField: "description",
+                        caption: "Tanım",
+                        width: 300
+                    },
+                ],
+                //toolbar işlemleri
+                onToolbarPreparing: function (e) {
+                    var toolbarItems = e.toolbarOptions.items;
+                    toolbarItems.unshift(
+                        {
+                            location: "after",
+                            widget: "dxButton",
+                            options: {
+                                icon: "refresh",
+                                hint: "Yenile",
+                               /* text:"Yenile",*/
+                                onClick: function () {
+                                    gridCategory.refresh();
+                                }
+                            }
+                        }
+                    );
+                    $.each(toolbarItems, function (_, item) {
+                        if (item.name === "addRowButton") {
+                            item.location = "before";
+                            item.id = "addRowButton";
+                            item.options.text = "Kategori Ekle";
+                            item.showText = 'always';
+                            item.options.hint = "Kategori Ekle";
+                        }
+                    });
+                }
+            });
+
+        })
+
+        $(function () {
+            var gridData = new DevExpress.data.CustomStore({
+                key: "id",
+                load: function (loadOptions) {
+                    return $.getJSON(url_ + "News/GetTagList/");
+                },
+
+                byKey: function (key) {
+                },
+
+                insert: function (values) {
+                    sendToController({ values: values }, "POST", url_ + "News/AddTag", "Etiket ekleme işleminde hata oluştu!", "Etiket ekleme işlemi başarılı!", "Tag");
+                },
+
+                update: function (key, values) {
+                    values.id = key;
+                    sendToController({ values: values }, "PUT", url_ + "News/UpdateTag", "Etiket düzenleme işleminde hata oluştu!", "Etiket düzenleme işlemi başarılı", "Tag");
+                },
+
+                remove: function (key) {
+                    sendToController({ key: key }, "DELETE", url_ + "News/DeleteTag/" + key, "Etiket silme işleminde hata oluştu!", "Etiket silme işlemi başarılı", "Tag");
+                }
+
+            });
+
+            gridTag = new DevExpress.ui.dxDataGrid(document.getElementById("widgetForTagDataGrid"), {
+                dataSource: gridData,
+                keyExpr: "id",
+                showBorders: true,
+                focusedRowEnabled: true,
+                rowAlternationEnabled: true,
+                allowColumnReordering: true,
+                allowColumnResizing: true,
+                wordWrapEnabled: true,
+                width: "100%",
+                grouping: {
+                    autoExpandAll: false,
+                    contextMenuEnabled: true
+                },
+                pager: {
+                    allowedPageSizes: [5, 10, 'all'],
+                    showInfo: true,
+                    showNavigationButtons: true,
+                    showPageSizeSelector: true,
+                    visible: true
+                },
+                stateStoring: {
+                    enabled: true,
+                    type: "localStorage",
+                    storageKey: "storageTag"
+                },
+                columnFixing: {
+                    enabled: true
+                },
+                filterRow: {
+                    visible: true,
+                    applyFilter: "auto"
+                },
+                editing: {
+                    mode: "cell",
+                    allowUpdating: true,
+                    allowAdding: true,
+                    allowDeleting: true,
+                    useIcons: true,
+                },
+                columns: [
+                    {
+                        dataField: "id",
+                        visible: false,
+                        showInColumnChooser: false,
+                        width: 60
+                    },
+                    {
+                        dataField: "description",
+                        caption: "Tanım",
+                        width: 300
+                    },
+                ],
+                //toolbar işlemleri
+                onToolbarPreparing: function (e) {
+                    var toolbarItems = e.toolbarOptions.items;
+                    toolbarItems.unshift(
+                        {
+                            location: "after",
+                            widget: "dxButton",
+                            options: {
+                                icon: "refresh",
+                                hint: "Yenile",
+                                /* text:"Yenile",*/
+                                onClick: function () {
+                                    gridTag.refresh();
+                                }
+                            }
+                        }
+                    );
+                    $.each(toolbarItems, function (_, item) {
+                        if (item.name === "addRowButton") {
+                            item.location = "before";
+                            item.id = "addRowButton";
+                            item.options.text = "Etiket Ekle";
+                            item.showText = 'always';
+                            item.options.hint = "Etiket Ekle";
+                        }
+                    });
+                }
+            });
+
+        })
+
+        function sendToController(values, sendType, url, errorMessage, successMessage, from) {
+            $.ajax({
+                type: sendType,
+                url: url,
+                data: values,
+                success: function (data) {
+                    success(successMessage);
+                    if (from =="Category") {
+                        gridCategory.refresh();
+                    }
+                    else {
+                        gridTag.refresh();
+                    }
+                },
+                error: function (data) {
+                    error(errorMessage)
+                }
+            });
+        }
+
+        function success(message) {
+            DevExpress.ui.notify({ message: message, maxWidth: 1000 }, "success", 1000);
+        }
+
+        function error(message) {
+            DevExpress.ui.notify({ message: message, maxWidth: 1000 }, "error", 3000);
+        }
+    </script>
+}
+
